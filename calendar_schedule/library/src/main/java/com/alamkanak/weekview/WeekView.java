@@ -2,6 +2,8 @@ package com.alamkanak.weekview;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -80,7 +82,7 @@ public class WeekView extends View {
     private Paint mPastWeekendBackgroundPaint;
     private Paint mNowLinePaint;
     private Paint mTodayHeaderTextPaint;
-    private Paint mEventBackgroundPaint;
+    private Paint mEventBackgroundPaint,mEventStrokePaint;
     private float mHeaderColumnWidth;
     private List<EventRect> mEventRects;
     private List<? extends WeekViewEvent> mPreviousPeriodEvents;
@@ -136,7 +138,7 @@ public class WeekView extends View {
     private float mXScrollingSpeed = 1f;
     private Calendar mScrollToDay = null;
     private double mScrollToHour = -1;
-    private int mEventCornerRadius = 0;
+    private int mEventCornerRadius = 8;
     private boolean mShowDistinctWeekendColor = false;
     private boolean mShowNowLine = false;
     private boolean mShowDistinctPastFutureColor = false;
@@ -430,6 +432,12 @@ public class WeekView extends View {
         mEventBackgroundPaint = new Paint();
         mEventBackgroundPaint.setColor(Color.rgb(174, 208, 238));
 
+        mEventStrokePaint = new Paint();
+        mEventStrokePaint.setStyle(Paint.Style.STROKE);
+        mEventStrokePaint.setStrokeWidth(1);
+        mEventStrokePaint.setColor(Color.parseColor("#999999"));
+
+
         // Prepare header column background color.
         mHeaderColumnBackgroundPaint = new Paint();
         mHeaderColumnBackgroundPaint.setColor(mHeaderColumnBackgroundColor);
@@ -437,7 +445,7 @@ public class WeekView extends View {
         // Prepare event text size and color.
         mEventTextPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG | Paint.LINEAR_TEXT_FLAG);
         mEventTextPaint.setStyle(Paint.Style.FILL);
-        mEventTextPaint.setColor(mEventTextColor);
+        mEventTextPaint.setColor(Color.BLACK);
         mEventTextPaint.setTextSize(mEventTextSize);
 
         // Set default event color.
@@ -805,9 +813,25 @@ public class WeekView extends View {
                             bottom > mHeaderHeight + mHeaderRowPadding * 2 + mTimeTextHeight / 2 + mHeaderMarginBottom
                             ) {
                         mEventRects.get(i).rectF = new RectF(left, top, right, bottom);
+                        // 绘制边框
+                        canvas.drawRoundRect(mEventRects.get(i).rectF , mEventCornerRadius, mEventCornerRadius, mEventStrokePaint);
+                        // 绘制内容物
+                        RectF rectF = new RectF();
+                        rectF.top=mEventRects.get(i).rectF.top;
+                        rectF.bottom=mEventRects.get(i).rectF.bottom;
+                        rectF.left=mEventRects.get(i).rectF.left;
+                        rectF.right=mEventRects.get(i).rectF.left+12;
+                        RectF rectF2 = new RectF();
+                        rectF2.top=mEventRects.get(i).rectF.top;
+                        rectF2.bottom=mEventRects.get(i).rectF.bottom;
+                        rectF2.left=mEventRects.get(i).rectF.left+10;
+                        rectF2.right=mEventRects.get(i).rectF.left+12;
                         mEventBackgroundPaint.setColor(mEventRects.get(i).event.getColor() == 0 ? mDefaultEventColor : mEventRects.get(i).event.getColor());
-                        canvas.drawRoundRect(mEventRects.get(i).rectF, mEventCornerRadius, mEventCornerRadius, mEventBackgroundPaint);
-                        drawEventTitle(mEventRects.get(i).event, mEventRects.get(i).rectF, canvas, top, left);
+                        canvas.drawRoundRect(rectF, mEventCornerRadius, mEventCornerRadius, mEventBackgroundPaint);
+                        canvas.drawRect(rectF2,  mEventBackgroundPaint);
+
+                        //绘制文字
+                        drawEventTitle(mEventRects.get(i).event, mEventRects.get(i).rectF, canvas, top+16, left+16);
                     }
                     else
                         mEventRects.get(i).rectF = null;
